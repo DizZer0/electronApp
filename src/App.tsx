@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './App.scss';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 
 function App() {
   const [fileName, setFileName] = useState<string>("");
   const [fileContent, setFileContent] = useState<string>("");
-  const [namesList, setNamesList] = useState<string[]>([])
 
+  const { isOnline } = useNetworkStatus();
 
   const createAndSaveTxtFile = async (fileName: string, fileContent: string): Promise<void> => {
     try {
@@ -25,22 +26,11 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then(response => response.json())
-      .then(json => console.log(json))
-    // fetch('https://randomuser.me/api/?results=5')
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     const names = data.results.map((user: any) => `${user.name.first} ${user.name.last}`);
-    //     setNamesList(names)
-    //   });
-  }, [])
-
   return (
     <div className="App">
-      <div className='list-name'>
-        {namesList.map(name => <span className='list-name__item' key={name}>{name}</span>)}
+      <div className='network-status'>
+        Подключение к сети 
+        <div className={`network-status__indicator ${isOnline ? "online" : ""}`}/>
       </div>
       <div className='form' >
         <div className='form__input'>

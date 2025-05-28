@@ -216,22 +216,6 @@ export class ElectronCapacitorApp {
   }
 }
 
-// Set a CSP up for our application based on the custom scheme
-// export function setupContentSecurityPolicy(customScheme: string): void {
-//   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-//     callback({
-//       responseHeaders: {
-//         ...details.responseHeaders,
-//         'Content-Security-Policy': [
-//           electronIsDev
-//             ? `default-src ${customScheme}://* 'unsafe-inline' devtools://* 'unsafe-eval' data:`
-//             : `default-src ${customScheme}://* 'unsafe-inline' data:`,
-//         ],
-//       },
-//     });
-//   });
-// }
-
 export function setupContentSecurityPolicy(customScheme: string): void {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     // Базовые разрешения для всех директив
@@ -241,27 +225,18 @@ export function setupContentSecurityPolicy(customScheme: string): void {
       "http://localhost:*",
       "ws://localhost:*",
       "electron://*",
-      "https://randomuser.me/api/?results=5",
-      "https://jsonplaceholder.typicode.com/users"
-    ];
-
-    // Специфичные разрешения для разных типов контента
-    const djemsSources = [
-      "http://djemsolutions.com:11752",
-      "http://djemsolutions.com:11754",
-      "http://djemsolutions.com:11755", // Добавили медиа-порт
     ];
 
     // Формируем директивы CSP
     const directives = {
       "default-src": baseSources,
-      "connect-src": [...baseSources, ...djemsSources],
-      "img-src": [...baseSources, "data:", "blob:", ...djemsSources],
-      "media-src": [...baseSources, "data:", "blob:", ...djemsSources],
-      "style-src": [...baseSources, "'unsafe-inline'", ...djemsSources],
-      "font-src": [...baseSources, ...djemsSources],
-      "script-src": [...baseSources, "'unsafe-inline'", ...djemsSources],
-      "frame-src": ["'self'", djemsSources[0]], // Только первый djems-адрес
+      "connect-src": [...baseSources],
+      "img-src": [...baseSources, "data:", "blob:"],
+      "media-src": [...baseSources, "data:", "blob:"],
+      "style-src": [...baseSources, "'unsafe-inline'"],
+      "font-src": [...baseSources],
+      "script-src": [...baseSources, "'unsafe-inline'"],
+      "frame-src": ["'self'", [0]], // Только первый djems-адрес
     };
 
     // Формируем итоговую политику

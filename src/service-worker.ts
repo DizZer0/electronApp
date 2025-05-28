@@ -12,9 +12,8 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate, CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
+import { StaleWhileRevalidate, CacheFirst, NetworkOnly } from 'workbox-strategies';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
-import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -41,25 +40,6 @@ precacheAndRoute(manifest);
 const bgSyncPlugin = new BackgroundSyncPlugin('myQueueName', {
   maxRetentionTime: 24 * 60, // Попытка выполнения повторного запроса будет выполнена в течение 24 часов (в минутах)
 });
-// Регистрация маршрута для кэширования данных с учетом пагинации
-// registerRoute(
-//   ({ url }) => {
-//     // Проверяем, что URL соответствует базовому URL и содержит параметры пагинации
-//     return url.origin === 'http://localhost:3000' && url.pathname === '/api/v1/Dictionaries/all';
-//   },
-//   new StaleWhileRevalidate({
-//     cacheName: 'paginated-data',
-//     plugins: [
-//       new CacheableResponsePlugin({
-//         statuses: [0, 200],
-//       }),
-//       new ExpirationPlugin({
-//         maxEntries: 50, // Максимальное количество записей в кэше
-//         maxAgeSeconds: 60 * 60 * 24, // Срок хранения кэша в секундах (24 часа)
-//       }),
-//     ],
-//   })
-// );
 
 // Регистрируем маршрут для обработки POST-запросов на /posts
 registerRoute(
@@ -111,6 +91,7 @@ registerRoute(
     ],
   })
 );
+
 // Кешируем иконки .ico и .png с использованием стратегии CacheFirst
 registerRoute(
   ({ url }) => url.origin === self.location.origin && (url.pathname.endsWith('.ico') || url.pathname.endsWith('.png')),
@@ -120,42 +101,13 @@ registerRoute(
     plugins: [new ExpirationPlugin({ maxEntries: 50 })],
   })
 );
-// // Регистрируем маршрут для кеширования данных с конкретного API-эндпоинта
-registerRoute(
-  // Проверяем, что URL соответствует API-эндпоинту для получения списка пользователей
-  ({ url }) => url.origin === 'https://jsonplaceholder.typicode.com' && url.pathname === '/users',
-  // Используем стратегию StaleWhileRevalidate для обслуживания запросов из кеша и обновления данных из сети
-  new StaleWhileRevalidate({
-    cacheName: 'users-list',
-    plugins: [
-      // Ограничиваем количество кешированных записей до 1, удаляя старые при необходимости
-      new ExpirationPlugin({ maxEntries: 1 }),
-    ],
-  })
-);
+
 // Исключаем файлы CSS из кеширования
 registerRoute(
   // Проверяем, что URL имеет тот же домен и заканчивается на .css
   ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.css'),
   // Используем стратегию NetworkOnly для загрузки файлов CSS только из сети и никогда не кеширования
   new NetworkOnly()
-);
-
-registerRoute(
- ({url}) => {
-  console.log(url)
-  return url.pathname.startsWith("/api/")
- },
-  new NetworkFirst({
-    cacheName: 'names-chache',
-    networkTimeoutSeconds: 3, // Таймаут 3 секунды
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 10,
-        maxAgeSeconds: 24 * 60 * 60 // 24 часа
-      })
-    ]
-  })
 );
 
 
